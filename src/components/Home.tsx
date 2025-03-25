@@ -1,19 +1,35 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+// /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import {
+  Box,
+  Button,
   Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  Grid,
+  Grid2,
   IconButton,
+  InputLabel,
+  MenuItem,
   Paper,
+  Select,
+  SelectChangeEvent,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  TextField,
   Typography,
 } from "@mui/material";
-import { Delete } from "@mui/icons-material";
+import { Add, Delete, Edit } from "@mui/icons-material";
 
 interface Transaction {
   id: number;
@@ -27,6 +43,19 @@ const Home = () => {
   const { id } = useParams<{ id: string }>();
   const apiCalled = useRef(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [open, setOpen] = useState(false);
+  const [currentTransaction, setCurrentTransaction] = useState<Transaction | null>(null);
+
+  const [openAdd, setOpenAdd] = useState(false);
+  const [newTransaction, setNewTransaction] = useState<Transaction>({
+    id: 0, // Dummy value, will be replaced by DB
+    amount: 0,
+    description: "",
+    created_at: new Date().toISOString(),
+    transaction_type: 1, // Default to Debit
+  });
+
+
 
   const handleDelete = async (transactionId: number) => {
     if (window.confirm("Are you sure you want to delete this transaction?")) {
@@ -43,7 +72,7 @@ const Home = () => {
       }
     }
   };
-  
+
   const fetchTransactions = async () => {
     try {
       const res = await axios.get(
@@ -72,6 +101,7 @@ const Home = () => {
   });
 
   const formatAmount = (amount: number, transactionType: number) => {
+    if (amount == undefined || amount == null) return <span>0</span>;
     if (transactionType === 1) {
       // Debit -> Negative value, Red color
       return (
@@ -89,11 +119,102 @@ const Home = () => {
     }
   };
 
+  const handleEdit = (transaction: Transaction) => {
+    setCurrentTransaction(transaction);
+    setOpen(true);
+  };
+
+  // Handle Update
+  const handleUpdate = async () => {
+    if (currentTransaction) {
+      try {
+        const res = await axios.put(
+          `http://localhost:5000/api/auth/transactions/update/${currentTransaction.id}`,
+          currentTransaction
+        );
+        if (res.data) {
+          setTransactions(
+            transactions.map((transaction) =>
+              transaction.id === currentTransaction.id ? (res.data as Transaction[])[0] : transaction
+            )
+          );
+        }
+
+        console.log("transactions --", res.data);
+        setOpen(false);
+        console.log("Transaction updated successfully");
+      } catch (err) {
+        console.error("Error updating transaction:", err);
+      }
+    }
+  };
+
+  const handleAdd = () => {
+    setCurrentTransaction({
+      id: 0,
+      amount: 0,
+      description: "",
+      created_at: new Date().toISOString(),
+      transaction_type: 1, // Default to Debit
+    });
+    setOpen(true);
+  };
+
+  const handleAddTransaction = async () => {
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/api/auth/transactions/add",
+        { ...currentTransaction, space_id: id } // Add space_id to link transaction
+      );
+      if (res.data) {
+        setTransactions([...transactions, res.data as Transaction]);
+        console.log("Transaction added successfully");
+        setOpen(false);
+      }
+    } catch (err) {
+      console.error("Error adding transaction:", err);
+    }
+  };
+
+
+
+  // Handle Change in Modal Fields
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (currentTransaction) {
+      setCurrentTransaction({
+        ...currentTransaction,
+        [e.target.name]: e.target.value,
+      });
+    }
+  };
+
+  const handleSelectChange = (e: SelectChangeEvent<number>) => {
+    const { name, value } = e.target;
+    if (currentTransaction) {
+      setCurrentTransaction({
+        ...currentTransaction,
+        [name]: Number(value), // Convert value to number
+      });
+    }
+  };
+
   return (
-    <Container>
-      <Typography variant="h5" gutterBottom>
-        Transaction History
-      </Typography>
+    
+    <Box px={2}>
+      
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={2} // Optional margin at the bottom
+      >
+        <Typography variant="h5" gutterBottom>
+          Transaction History
+        </Typography>
+        <IconButton color="primary" onClick={handleAdd}>
+          <Add />
+        </IconButton>
+      </Box>
 
       <TableContainer component={Paper}>
         <Table>
@@ -102,7 +223,7 @@ const Home = () => {
               <TableCell>ID</TableCell>
               <TableCell>Description</TableCell>
               <TableCell>Amount</TableCell>
-              <TableCell>Transaction Type</TableCell>
+              {/* <TableCell>Transaction Type</TableCell> */}
               <TableCell>Created At</TableCell>
               <TableCell>Delete</TableCell>
             </TableRow>
@@ -118,11 +239,18 @@ const Home = () => {
                     transaction.transaction_type
                   )}
                 </TableCell>
-                <TableCell>
+                {/* <TableCell>
                   {transaction.transaction_type == 1 ? "Debit" : "Credit"}
-                </TableCell>
+                </TableCell> */}
                 <TableCell>{formatDate(transaction.created_at)}</TableCell>
                 <TableCell>
+                  <IconButton
+                    onClick={() => handleEdit(transaction)}
+                    color="primary"
+                    size="small"
+                  >
+                    <Edit />
+                  </IconButton>
                   <IconButton
                     onClick={() => handleDelete(transaction.id)}
                     color="error"
@@ -130,14 +258,65 @@ const Home = () => {
                   >
                     <Delete />
                   </IconButton>
-                  </TableCell>
-                
+                </TableCell>
+
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
-    </Container>
+
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>
+          {currentTransaction?.id ? "Edit Transaction" : "Add Transaction"}
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Description"
+            name="description"
+            fullWidth
+            margin="normal"
+            value={currentTransaction?.description || ""}
+            onChange={handleChange}
+          />
+          <TextField
+            label="Amount"
+            name="amount"
+            type="number"
+            fullWidth
+            margin="normal"
+            value={currentTransaction?.amount || ""}
+            onChange={handleChange}
+          />
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Transaction Type</InputLabel>
+            <Select
+              label="Transaction Type"
+              name="transaction_type"
+              value={currentTransaction?.transaction_type || ""}
+              onChange={handleSelectChange}
+            >
+              <MenuItem value={1}>Debit</MenuItem>
+              <MenuItem value={2}>Credit</MenuItem>
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpen(false)} color="secondary">
+            Cancel
+          </Button>
+          <Button
+            onClick={() =>
+              currentTransaction?.id ? handleUpdate() : handleAddTransaction()
+            }
+            color="primary"
+          >
+            {currentTransaction?.id ? "Update" : "Add"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+    </Box>
   );
 };
 
