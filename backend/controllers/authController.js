@@ -1,4 +1,4 @@
-const { createUser, getTransactionsQuery, deleteTransactionQuery, updateTransactionQuery, addTransactionQuery } = require("../models/userModel");
+const { createUser, getTransactionsQuery, deleteTransactionQuery, updateTransactionQuery, addTransactionQuery, getTransactionsOfLast30DaysQuery, getTransactionsOfLast7DaysQuery, userCheckQuery } = require("../models/userModel");
 
 const registerUser = async (req, res) => {
   const { username, password } = req.body;
@@ -11,11 +11,41 @@ const registerUser = async (req, res) => {
   }
 };
 
+const userCheck = async (req, res) => {
+      const { username, password } = req.body;
+      try {
+        const userInfo = await userCheckQuery(username,password);
+        res.status(201).json(userInfo);
+      } catch (err) {
+        console.error(err.message);
+        res.status(500).send("Server Error");
+      }
+    };
 const getTransactions = async (req, res) => {
-      console.log("req params ---",req.params);
       const { id } = req.params;
       try {
         const allTransactions = await getTransactionsQuery(id);
+        res.status(201).json(allTransactions);
+      } catch (err) {
+        console.error(err.message);
+        res.status(500).send("Server Error");
+      }
+    };
+const getTransactionsOfLast30Days = async (req, res) => {
+      const { id } = req.params;
+      try {
+        const allTransactions = await getTransactionsOfLast30DaysQuery(id);
+        res.status(201).json(allTransactions);
+      } catch (err) {
+        console.error(err.message);
+        res.status(500).send("Server Error");
+      }
+    };
+
+const getTransactionsOfLast7Days = async (req, res) => {
+      const { id } = req.params;
+      try {
+        const allTransactions = await getTransactionsOfLast7DaysQuery(id);
         res.status(201).json(allTransactions);
       } catch (err) {
         console.error(err.message);
@@ -67,4 +97,4 @@ const addTransaction = async (req, res) => {
       }
     };
     
-module.exports = { registerUser, getTransactions, deleteTransaction, updateTransaction, addTransaction };
+module.exports = { registerUser, getTransactions, deleteTransaction, updateTransaction, addTransaction, getTransactionsOfLast30Days, getTransactionsOfLast7Days, userCheck };

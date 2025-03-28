@@ -1,18 +1,16 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-// /* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import {
   Box,
   Button,
-  Container,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   FormControl,
-  Grid,
   Grid2,
   IconButton,
   InputLabel,
@@ -20,16 +18,21 @@ import {
   Paper,
   Select,
   SelectChangeEvent,
+  Tab,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  Tabs,
   TextField,
   Typography,
 } from "@mui/material";
 import { Add, Delete, Edit } from "@mui/icons-material";
+import BarGraph from "./BarGraph";
+import PieGraph from "./PieGraph";
+import Navbar from "./Navbar";
 
 interface Transaction {
   id: number;
@@ -40,22 +43,30 @@ interface Transaction {
 }
 
 const Home = () => {
+  const navigate = useNavigate(); 
   const { id } = useParams<{ id: string }>();
   const apiCalled = useRef(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [open, setOpen] = useState(false);
   const [currentTransaction, setCurrentTransaction] = useState<Transaction | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(false);
+  const [tabIndex, setTabIndex] = useState(0);
 
-  const [openAdd, setOpenAdd] = useState(false);
-  const [newTransaction, setNewTransaction] = useState<Transaction>({
-    id: 0, // Dummy value, will be replaced by DB
-    amount: 0,
-    description: "",
-    created_at: new Date().toISOString(),
-    transaction_type: 1, // Default to Debit
-  });
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabIndex(newValue);
+  };
 
+  useEffect(() => {
+    const userData = localStorage.getItem("user");
 
+    if (userData) {
+      // Parse user data and navigate to /home/:id
+      const user = JSON.parse(userData);
+      if(user.id != id){
+        navigate("/login");
+      }
+    } 
+  })
 
   const handleDelete = async (transactionId: number) => {
     if (window.confirm("Are you sure you want to delete this transaction?")) {
@@ -66,6 +77,7 @@ const Home = () => {
         setTransactions(
           transactions.filter((transaction) => transaction.id !== transactionId)
         );
+        setRefreshTrigger((prev) => !prev);
         console.log("Transaction deleted successfully");
       } catch (err) {
         console.error("Error deleting transaction:", err);
@@ -138,6 +150,7 @@ const Home = () => {
               transaction.id === currentTransaction.id ? (res.data as Transaction[])[0] : transaction
             )
           );
+          setRefreshTrigger((prev) => !prev);
         }
 
         console.log("transactions --", res.data);
@@ -170,6 +183,7 @@ const Home = () => {
         setTransactions([...transactions, res.data as Transaction]);
         console.log("Transaction added successfully");
         setOpen(false);
+        setRefreshTrigger((prev) => !prev);
       }
     } catch (err) {
       console.error("Error adding transaction:", err);
@@ -199,72 +213,154 @@ const Home = () => {
   };
 
   return (
-    
-    <Box px={2}>
+
+    <>
+    <Navbar />
+    <Grid2 container spacing={2} px={2} style={{ padding: "20px" }}>
+      <Grid2 size={6}>
+        <Paper elevation={3} style={{ }}>
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+            sx={{
+              padding: "20px", backgroundColor: "primary.main", color: "primary.contrastText",
+
+            }}
+          >
+            <Typography variant="h6" gutterBottom>
+              Transaction History
+            </Typography>
+            <IconButton sx={{ color: "primary.contrastText" }} onClick={handleAdd}>
+              <Add />
+            </IconButton>
+          </Box>
+
+          <TableContainer component={Box} sx={{
+            maxHeight: "70vh", // Set inner scrolling height for the table
+            overflowY: "auto",
+            '&::-webkit-scrollbar': {
+              width: '6px',
+              height: '6px',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              backgroundColor: 'primary.main', // Light grey thumb
+              borderRadius: '5px',
+            },
+            '&::-webkit-scrollbar-thumb:hover': {
+              backgroundColor: 'primary.light', // Slightly darker on hover
+            },
+            '&::-webkit-scrollbar-track': {
+              backgroundColor: 'primary.contrastText', // Lighter track
+            },
+          }}>
+            <Table stickyHeader>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Description</TableCell>
+                  <TableCell>Amount</TableCell>
+                  {/* <TableCell>Transaction Type</TableCell> */}
+                  <TableCell>Created At</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {transactions.map((transaction) => (
+                  <TableRow key={transaction.id}>
+                    {/* <TableCell>{transaction.id}</TableCell> */}
+                    <TableCell>{transaction.description}</TableCell>
+                    <TableCell>
+                      {formatAmount(
+                        transaction.amount,
+                        transaction.transaction_type
+                      )}
+                    </TableCell>
+                    {/* <TableCell>
+            {transaction.transaction_type == 1 ? "Debit" : "Credit"}
+          </TableCell> */}
+                    <TableCell>{formatDate(transaction.created_at)}</TableCell>
+                    <TableCell>
+                      <IconButton
+                        onClick={() => handleEdit(transaction)}
+                        color="primary"
+                        size="small"
+                      >
+                        <Edit />
+                      </IconButton>
+                      <IconButton
+                        onClick={() => handleDelete(transaction.id)}
+                        color="error"
+                        size="small"
+                      >
+                        <Delete />
+                      </IconButton>
+                    </TableCell>
+
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
+
+      </Grid2>
       
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={2} // Optional margin at the bottom
-      >
-        <Typography variant="h5" gutterBottom>
-          Transaction History
-        </Typography>
-        <IconButton color="primary" onClick={handleAdd}>
-          <Add />
-        </IconButton>
+      <Grid2 container size={6}>
+        {/* <Grid2 size={12}>
+        <Paper elevation={3} style={{ padding: "20px", marginBottom: "20px" }}>
+          <Typography variant="h6" gutterBottom>
+            Transactions in Last 7 Days
+          </Typography>
+          <BarGraph id={id} refreshTrigger={refreshTrigger} />
+        </Paper>
+        </Grid2>
+        <Grid2 size={12}>
+        <Paper elevation={3} style={{ padding: "20px", marginBottom: "20px" }}>
+          <Typography variant="h6" gutterBottom>
+            Transactions in Last 30 Days
+          </Typography>
+          <PieGraph id={id} refreshTrigger={refreshTrigger} />
+        </Paper>
+        </Grid2> */}
+
+<Box sx={{ width: "100%", mt: 2 }}>
+      {/* Tabs Section */}
+      <Paper elevation={3} sx={{ mb: 2 }}>
+        <Tabs
+          value={tabIndex}
+          onChange={handleTabChange}
+          variant="fullWidth"
+          indicatorColor="primary"
+          textColor="primary"
+        >
+          <Tab label="Bar Chart" />
+          <Tab label="Pie Chart" />
+        </Tabs>
+      </Paper>
+
+      {/* Render Based on Tab Index */}
+      <Box>
+        {tabIndex === 0 && (
+          <Paper elevation={3} sx={{ p: 2 }}>
+            <Typography variant="h6" mb={2}>
+              Transactions in Last 7 Days
+            </Typography>
+            <BarGraph id={id} refreshTrigger={refreshTrigger} />
+          </Paper>
+        )}
+
+        {tabIndex === 1 && (
+          <Paper elevation={3} sx={{ p: 2 }}>
+            <Typography variant="h6" mb={2}>
+              Transactions in Last 30 Days
+            </Typography>
+            <PieGraph id={id} refreshTrigger={refreshTrigger} />
+          </Paper>
+        )}
       </Box>
-
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>Description</TableCell>
-              <TableCell>Amount</TableCell>
-              {/* <TableCell>Transaction Type</TableCell> */}
-              <TableCell>Created At</TableCell>
-              <TableCell>Delete</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {transactions.map((transaction) => (
-              <TableRow key={transaction.id}>
-                <TableCell>{transaction.id}</TableCell>
-                <TableCell>{transaction.description}</TableCell>
-                <TableCell>
-                  {formatAmount(
-                    transaction.amount,
-                    transaction.transaction_type
-                  )}
-                </TableCell>
-                {/* <TableCell>
-                  {transaction.transaction_type == 1 ? "Debit" : "Credit"}
-                </TableCell> */}
-                <TableCell>{formatDate(transaction.created_at)}</TableCell>
-                <TableCell>
-                  <IconButton
-                    onClick={() => handleEdit(transaction)}
-                    color="primary"
-                    size="small"
-                  >
-                    <Edit />
-                  </IconButton>
-                  <IconButton
-                    onClick={() => handleDelete(transaction.id)}
-                    color="error"
-                    size="small"
-                  >
-                    <Delete />
-                  </IconButton>
-                </TableCell>
-
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+    </Box>
+        
+      </Grid2>
 
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>
@@ -277,8 +373,7 @@ const Home = () => {
             fullWidth
             margin="normal"
             value={currentTransaction?.description || ""}
-            onChange={handleChange}
-          />
+            onChange={handleChange} />
           <TextField
             label="Amount"
             name="amount"
@@ -286,8 +381,7 @@ const Home = () => {
             fullWidth
             margin="normal"
             value={currentTransaction?.amount || ""}
-            onChange={handleChange}
-          />
+            onChange={handleChange} />
           <FormControl fullWidth margin="normal">
             <InputLabel>Transaction Type</InputLabel>
             <Select
@@ -306,9 +400,7 @@ const Home = () => {
             Cancel
           </Button>
           <Button
-            onClick={() =>
-              currentTransaction?.id ? handleUpdate() : handleAddTransaction()
-            }
+            onClick={() => currentTransaction?.id ? handleUpdate() : handleAddTransaction()}
             color="primary"
           >
             {currentTransaction?.id ? "Update" : "Add"}
@@ -316,7 +408,8 @@ const Home = () => {
         </DialogActions>
       </Dialog>
 
-    </Box>
+    </Grid2 >
+    </>
   );
 };
 

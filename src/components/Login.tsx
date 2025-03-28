@@ -17,13 +17,30 @@ function Login() {
   const handleSubmit = async (e: { preventDefault: () => void; }) => {
       e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/register", {
-        username,
-        password: pswd,
-      });
-      console.log("User created:", res.data);
-      const obj = res.data as UserResponse;
-      navigate("/home/" + obj.id)
+      const checkRes = await axios.post(
+        "http://localhost:5000/api/auth/userCheck",
+        {
+          username,
+          password: pswd,
+        }
+      );
+      const userObj = checkRes.data as UserResponse[];
+      if (checkRes.data && userObj.length > 0 && userObj[0].id) {
+        console.log("User exists, logging in:", userObj[0]);
+        localStorage.setItem("user", JSON.stringify(userObj[0]));
+        navigate("/home/" + userObj[0].id);
+      } 
+      else {
+        const res = await axios.post("http://localhost:5000/api/auth/register", {
+          username,
+          password: pswd,
+        });
+        console.log("User created:", res.data);
+        const obj = res.data as UserResponse;
+        localStorage.setItem("user", JSON.stringify(obj));
+        navigate("/home/" + obj.id)
+      }
+      
       // Redirect to a new page or show a success message
     } catch (err) {
       console.error("Error:", err);

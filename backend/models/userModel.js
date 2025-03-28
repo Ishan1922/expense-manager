@@ -7,6 +7,13 @@ const createUser = async (username, password) => {
   );
   return result.rows[0];
 };
+const userCheckQuery = async (username, password) => {
+      const result = await pool.query(
+        "select * from spaces where username = $1 and password = $2",
+        [username, password]
+      );
+      return result.rows;
+    };
 
 const getTransactionsQuery = async (id) => {
   const result = await pool.query(
@@ -15,6 +22,22 @@ const getTransactionsQuery = async (id) => {
   );
   return result.rows;
 };
+
+const getTransactionsOfLast30DaysQuery = async (id) => {
+      const result = await pool.query(
+        "select * from transactions where space_id = $1 and created_at > now() + '-30 days'",
+        [id]
+      );
+      return result.rows;
+    };
+
+    const getTransactionsOfLast7DaysQuery = async (id) => {
+      const result = await pool.query(
+        "select * from transactions where space_id = $1 and created_at > now() + '-7 days'",
+        [id]
+      );
+      return result.rows;
+    };
 
 const deleteTransactionQuery = async (id) => {
   const result = await pool.query("DELETE FROM transactions WHERE id = $1", [
@@ -46,4 +69,4 @@ const addTransactionQuery = async (
 
 
 
-module.exports = { createUser, getTransactionsQuery, deleteTransactionQuery, updateTransactionQuery, addTransactionQuery };
+module.exports = { createUser, getTransactionsQuery, deleteTransactionQuery, updateTransactionQuery, addTransactionQuery, getTransactionsOfLast30DaysQuery, getTransactionsOfLast7DaysQuery, userCheckQuery };
