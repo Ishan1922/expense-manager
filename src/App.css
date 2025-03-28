@@ -1,0 +1,34 @@
+@keyframes borderAnimation {
+  0% {
+    width: 0;
+    height: 0;
+  }
+  50% {
+    width: 100%;
+    height: 0;
+  }
+  100% {
+    width: 100%;
+    height: 1px;
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Trigger border animation */
+.PageWrapper {
+  &:before {
+    animation: borderAnimation 1s forwards; /* Animation for top border */
+  }
+
+  &:after {
+    animation: borderAnimation 1s 0.5s forwards; /* Animation for bottom border */
+  }
+}

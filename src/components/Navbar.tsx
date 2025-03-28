@@ -14,7 +14,7 @@ const Navbar = () => {
     <AppBar position="static" color="primary" sx={{ marginBottom: 2 }}>
       <Toolbar>
         <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          Expense Manager
+          Expense Manager 💸
         </Typography>
         <Button color="inherit" onClick={handleLogout}>
           Logout
