@@ -9,7 +9,8 @@ import {
       XAxis,
       YAxis,
       Tooltip,
-      ResponsiveContainer
+      ResponsiveContainer,
+      CartesianGrid
 } from "recharts";
 import { Stack, Box, Typography, CircularProgress } from "@mui/material";
 
@@ -54,26 +55,31 @@ const BarGraph = (props: { id: string | undefined, refreshTrigger: boolean }) =>
                   fetchTransactions();
             }
       }, [props.id, props.refreshTrigger]);
-
+      const generatePast7Days = () => {
+            const last7Days: { [key: string]: AggregatedData } = {};
+            for (let i = 6; i >= 0; i--) {
+              const date = dayjs().subtract(i, "day").format("DD MMM");
+              last7Days[date] = { day: date, debit: 0, credit: 0 };
+            }
+            return last7Days;
+          };
       const aggregateTransactions = (data: Transaction[]) => {
-            const groupedData: { [key: string]: AggregatedData } = {};
+            const groupedData: { [key: string]: AggregatedData } = generatePast7Days();
 
             data.forEach((transaction) => {
                   const date = dayjs(transaction.created_at).format("DD MMM");
-
+            
                   if (!groupedData[date]) {
-                        groupedData[date] = { day: date, debit: 0, credit: 0 };
+                    groupedData[date] = { day: date, debit: 0, credit: 0 };
                   }
-
+            
                   if (transaction.transaction_type === 1) {
-                        groupedData[date].debit += transaction.amount;
+                    groupedData[date].debit += transaction.amount;
                   } else if (transaction.transaction_type === 2) {
-                        groupedData[date].credit += transaction.amount;
+                    groupedData[date].credit += transaction.amount;
                   }
-            });
-
-            const result = Object.values(groupedData);
-            setAggregatedData(result);
+                });
+            setAggregatedData(Object.values(groupedData));
             // console.log("agreegated --",aggregatedData);
       };
 
@@ -121,6 +127,11 @@ const BarGraph = (props: { id: string | undefined, refreshTrigger: boolean }) =>
                               data={aggregatedData}
                               margin={{ top: 20, right: 30, left: 20, bottom: 30 }}
                         >
+                             <CartesianGrid
+      strokeDasharray="3 3" // Dashed grid lines
+      stroke="#e0e0e0" // Light grey color
+      opacity={0.8} // Slightly visible grid
+    /> 
                               <XAxis
                                     dataKey="day"
                                     label={{ value: "Day", position: "insideBottom", offset: -20 }}
@@ -137,9 +148,12 @@ const BarGraph = (props: { id: string | undefined, refreshTrigger: boolean }) =>
                                     cursor={{ fill: "transparent" }} // Remove background highlight on hover
                                     contentStyle={{
                                           backgroundColor: "#fff",
-                                          borderRadius: "8px",
-                                          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
-                                    }}
+                                          borderRadius: "6px",
+                                          padding: "4px 8px", // Reduced padding
+                                          boxShadow: "0 1px 4px rgba(0, 0, 0, 0.1)", // Lighter shadow
+                                          fontSize: "12px", // Smaller text
+                                          lineHeight: "1.4", // Better spacing
+                                        }}
                                     formatter={(value, name) => (
                                           <span style={{ color: name === "Debit" ? "#e57373" : "#81c784" }}>
                                                 {/* {name === "Debit" ? "Debit: " : "Credit: "} */}
@@ -148,8 +162,8 @@ const BarGraph = (props: { id: string | undefined, refreshTrigger: boolean }) =>
                                     )}
                               />
                               {/* <Legend /> */}
-                              <Bar dataKey="debit" fill="#e57373" name="Debit" />
-                              <Bar dataKey="credit" fill="#81c784" name="Credit" />
+                              <Bar dataKey="debit" fill="#e57373" name="Debit" animationDuration={1500}  />
+                              <Bar dataKey="credit" fill="#81c784" name="Credit" animationDuration={1500}  />
                         </BarChart>
                   </ResponsiveContainer></>)}
                   

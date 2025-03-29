@@ -11,7 +11,7 @@ const Navbar = () => {
   };
 
   return (
-    <AppBar position="static" color="primary" sx={{ marginBottom: 2 }}>
+    <AppBar position="static" color="primary" sx={{  }}>
       <Toolbar>
         <Typography variant="h6" sx={{ flexGrow: 1 }}>
           Expense Manager 💸
