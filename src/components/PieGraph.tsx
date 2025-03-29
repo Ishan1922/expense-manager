@@ -94,7 +94,7 @@ const PieGraph = (props: { id: string | undefined, refreshTrigger: boolean }) =>
                                                 `${name} ${(percent * 100).toFixed(0)}%`
                                           }
                                     >
-                                          {pieData.map((entry, index) => (
+                                          {pieData.map((_entry,index) => (
                                                 <Cell key={`cell-${index}`} fill={COLORS[index]} />
                                           ))}
                                     </Pie>
