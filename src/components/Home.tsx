@@ -38,6 +38,7 @@ import BarGraph from "./BarGraph";
 import PieGraph from "./PieGraph";
 import Navbar from "./Navbar";
 import LineGraph from "./LineGraph";
+import Summary from "./Summary";
 
 interface Transaction {
   id: number;
@@ -384,7 +385,11 @@ const Home = () => {
               )}
 
             </Box>
+
+
+          <Summary id={id} refreshTrigger={refreshTrigger} ></Summary>
           </Box>
+
 
         </Grid2>
 
