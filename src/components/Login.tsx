@@ -18,6 +18,7 @@ import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+const API_URL = "https://expense-manager-27qr.onrender.com";
 
 function Login() {
   const [username, setUsername] = useState("");
@@ -71,7 +72,7 @@ function Login() {
       try {
         //check if user already exist!!
         const checkRes = await axios.post(
-          "http://localhost:5000/api/auth/userCheck",
+          `${API_URL}/api/auth/userCheck`,
           {
             username,
             password: pswd,
@@ -87,7 +88,7 @@ function Login() {
 
           try {
             // Register new user
-            const res = await axios.post("http://localhost:5000/api/auth/register", {
+            const res = await axios.post( API_URL + "/api/auth/register", {
               username,
               password: pswd,
             });
@@ -114,7 +115,7 @@ function Login() {
       setLoading(true)
       try {
         const checkRes = await axios.post(
-          "http://localhost:5000/api/auth/userCheck",
+          API_URL + "/api/auth/userCheck",
           {
             username,
             password: pswd,

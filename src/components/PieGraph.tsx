@@ -19,6 +19,8 @@ interface Transaction {
       transaction_type: number;
 }
 
+const API_URL = "https://expense-manager-27qr.onrender.com";
+
 const COLORS = ["#e57373", "#81c784"]; // Red for Debit, Green for Credit
 
 const PieGraph = (props: { id: string | undefined, refreshTrigger: boolean }) => {
@@ -35,7 +37,7 @@ const PieGraph = (props: { id: string | undefined, refreshTrigger: boolean }) =>
                   setLoading(true);
                   try {
                         const res = await axios.get(
-                              `http://localhost:5000/api/auth/transactions/past-month/${props.id}`
+                              `${API_URL}/api/auth/transactions/past-month/${props.id}`
                         );
                         setTransactions(res.data as Transaction[]);
                   } catch (err) {

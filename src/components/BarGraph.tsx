@@ -28,6 +28,8 @@ interface AggregatedData {
       credit: number;
 }
 
+const API_URL = "https://expense-manager-27qr.onrender.com";
+
 const BarGraph = (props: { id: string | undefined, refreshTrigger: boolean }) => {
 
       // const { id } = useParams<{ id: string }>();
@@ -42,7 +44,7 @@ const BarGraph = (props: { id: string | undefined, refreshTrigger: boolean }) =>
                   setLoading(true);
                   try {
                         const res = await axios.get(
-                              `http://localhost:5000/api/auth/transactions/past-week/${props.id}`
+                              `${API_URL}/api/auth/transactions/past-week/${props.id}`
                         );
                         setTransactions(res.data as Transaction[]);
                         // console.log("transactions --", transactions);

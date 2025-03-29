@@ -5,7 +5,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
 import {
   Box,
   Button,
@@ -39,6 +38,8 @@ import PieGraph from "./PieGraph";
 import Navbar from "./Navbar";
 import LineGraph from "./LineGraph";
 import Summary from "./Summary";
+
+const API_URL = "https://expense-manager-27qr.onrender.com";
 
 interface Transaction {
   id: number;
@@ -80,7 +81,7 @@ const Home = () => {
       setLoading(true);
       try {
         await axios.delete(
-          `http://localhost:5000/api/auth/transactions/delete/${transactionId}`
+          `${API_URL}/api/auth/transactions/delete/${transactionId}`
         );
         setTransactions(
           transactions.filter((transaction) => transaction.id !== transactionId)
@@ -102,7 +103,7 @@ const Home = () => {
     setLoading(true);
     try {
       const res = await axios.get(
-        `http://localhost:5000/api/auth/transactions/${id}`
+        `${API_URL}/api/auth/transactions/${id}`
       );
       setTransactions(res.data as Transaction[]);
     } catch (err) {
@@ -157,7 +158,7 @@ const Home = () => {
       setLoading(true);
       try {
         const res = await axios.put(
-          `http://localhost:5000/api/auth/transactions/update/${currentTransaction.id}`,
+          `${API_URL}/api/auth/transactions/update/${currentTransaction.id}`,
           currentTransaction
         );
         if (res.data) {
@@ -196,7 +197,7 @@ const Home = () => {
     setLoading(true);
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/auth/transactions/add",
+        `${API_URL}/api/auth/transactions/add`,
         { ...currentTransaction, space_id: id } // Add space_id to link transaction
       );
       if (res.data) {
