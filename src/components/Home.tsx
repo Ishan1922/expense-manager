@@ -31,6 +31,7 @@ import {
   Tabs,
   TextField,
   Typography,
+  useMediaQuery,
 } from "@mui/material";
 import { Add, Delete, Edit } from "@mui/icons-material";
 import BarGraph from "./BarGraph";
@@ -38,6 +39,7 @@ import PieGraph from "./PieGraph";
 import Navbar from "./Navbar";
 import LineGraph from "./LineGraph";
 import Summary from "./Summary";
+import theme from "../theme";
 
 const API_URL = "https://expense-manager-27qr.onrender.com";
 
@@ -59,10 +61,49 @@ const Home = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(false);
   const [tabIndex, setTabIndex] = useState(0);
   const [loading, setLoading] = useState(false);
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  const [isLineGraph, setIsLineGraph] = useState(false);
+  const [isBarGraph, setIsBarGraph] = useState(false);
+  const [isPieGraph, setIsPieGraph] = useState(false);
+  // const [isSummary, setIsSummary] = useState(false);
+  const [isTransactionHistory, setIsTransactionHistory] = useState(true);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabIndex(newValue);
   };
+
+  const handleMenuSelection = (menuId: number) => {
+    if(isMobile){
+      console.log("menu in home --- ", menuId)
+      if(menuId === 0){
+        //do nothing
+      }
+      else if(menuId == 1){
+        setIsTransactionHistory(true);
+      }
+      else {
+        setIsTransactionHistory(false);
+        setIsLineGraph(false);
+        setIsBarGraph(false);
+        setIsPieGraph(false);
+        if(menuId == 2){
+          setIsLineGraph(true);
+        }
+        else if (menuId == 3){
+          setIsBarGraph(true);
+        }
+        else if(menuId == 4){
+          setIsPieGraph(true);
+        }
+        else {
+          toast.error("Failed to load data");
+          setIsTransactionHistory(true);
+        }
+      }
+    }
+    
+  }
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -99,7 +140,7 @@ const Home = () => {
   };
 
   const fetchTransactions = async () => {
-    
+
     setLoading(true);
     try {
       const res = await axios.get(
@@ -239,10 +280,10 @@ const Home = () => {
   return (
 
     <>
-      <Navbar />
+      <Navbar menuSelection={handleMenuSelection} />
       <ToastContainer
         position="top-right"
-        autoClose={5000}
+        autoClose={3000}
         hideProgressBar={false}
         closeOnClick
         pauseOnHover
@@ -250,14 +291,16 @@ const Home = () => {
         theme="colored"
       />
       <Grid2 container spacing={2} px={2} style={{ padding: "20px" }}>
-        <Grid2 size={6}>
+
+        {/* left side data  */}
+        { isTransactionHistory && <Grid2 size={isMobile ? 12 : 6}>
           <Paper elevation={3} style={{}}>
             <Box
               display="flex"
               justifyContent="space-between"
               alignItems="center"
               sx={{
-                padding: "20px", backgroundColor: "primary.main", color: "primary.contrastText",
+                padding: "10px", backgroundColor: "primary.main", color: "primary.contrastText",
 
               }}
             >
@@ -268,10 +311,10 @@ const Home = () => {
                 <Add />
               </IconButton>
             </Box>
-              {loading ? (<Box display="flex" justifyContent="center" alignItems="center" height={300}>
-                        <CircularProgress />
-                      </Box>) : (<TableContainer component={Box} sx={{
-              maxHeight: "70vh", // Set inner scrolling height for the table
+            {loading ? (<Box display="flex" justifyContent="center" alignItems="center" height={300}>
+              <CircularProgress />
+            </Box>) : (<TableContainer component={Box} sx={{
+              maxHeight: isMobile ? "73vh" : "77vh", // Set inner scrolling height for the table
               overflowY: "auto",
               '&::-webkit-scrollbar': {
                 width: '6px',
@@ -288,7 +331,21 @@ const Home = () => {
                 backgroundColor: 'primary.contrastText', // Lighter track
               },
             }}>
-              <Table stickyHeader>
+              <Table stickyHeader sx={{
+                fontSize: "12px",
+                padding: "4px 10px",
+                size: "small",
+                "& .MuiTableCell-root": {
+                  padding: "4px", // Reduced padding for mobile
+                  fontSize: "12px", // Smaller font size on mobile
+                },
+                "& .MuiTableHead-root": {
+                  "& .MuiTableCell-root": {
+                    fontSize: "13px",
+                    fontWeight: "bold",
+                  },
+                },
+              }}>
                 <TableHead>
                   <TableRow>
                     <TableCell>Description</TableCell>
@@ -318,15 +375,16 @@ const Home = () => {
                           onClick={() => handleEdit(transaction)}
                           color="primary"
                           size="small"
+                          
                         >
-                          <Edit />
+                          <Edit sx={ isMobile ? {fontSize: "10px"} : null}/>
                         </IconButton>
                         <IconButton
                           onClick={() => handleDelete(transaction.id)}
                           color="error"
                           size="small"
                         >
-                          <Delete />
+                          <Delete sx={isMobile ? {fontSize: "10px"} : null} />
                         </IconButton>
                       </TableCell>
 
@@ -334,13 +392,15 @@ const Home = () => {
                   ))}
                 </TableBody>
               </Table>
-            </TableContainer>) }
-            
+            </TableContainer>)}
+
           </Paper>
 
-        </Grid2>
+        </Grid2>}
 
-        <Grid2 container size={6}>
+
+        {/* right side graphs */}
+        {!isMobile && (<Grid2 container size={6}>
 
 
           <Box sx={{ width: "100%", }}>
@@ -388,59 +448,103 @@ const Home = () => {
             </Box>
 
 
-          <Summary id={id} refreshTrigger={refreshTrigger} ></Summary>
+            <Summary id={id} refreshTrigger={refreshTrigger} ></Summary>
           </Box>
 
 
-        </Grid2>
+        </Grid2>)}
 
-        <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-          <DialogTitle>
-            {currentTransaction?.id ? "Edit Transaction" : "Add Transaction"}
-          </DialogTitle>
-          <DialogContent>
-            <TextField
-              label="Description"
-              name="description"
-              fullWidth
-              margin="normal"
-              value={currentTransaction?.description || ""}
-              onChange={handleChange} />
-            <TextField
-              label="Amount"
-              name="amount"
-              type="number"
-              fullWidth
-              margin="normal"
-              value={currentTransaction?.amount || ""}
-              onChange={handleChange} />
-            <FormControl fullWidth margin="normal">
-              <InputLabel>Transaction Type</InputLabel>
-              <Select
-                label="Transaction Type"
-                name="transaction_type"
-                value={currentTransaction?.transaction_type || ""}
-                onChange={handleSelectChange}
-              >
-                <MenuItem value={1}>Debit</MenuItem>
-                <MenuItem value={2}>Credit</MenuItem>
-              </Select>
-            </FormControl>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpen(false)} color="secondary">
-              Cancel
-            </Button>
-            <Button
-              onClick={() => currentTransaction?.id ? handleUpdate() : handleAddTransaction()}
-              color="primary"
-            >
-              {currentTransaction?.id ? "Update" : "Add"}
-            </Button>
-          </DialogActions>
-        </Dialog>
+        {isLineGraph && !isTransactionHistory && (<Grid2 container size={12}>
+          <Box sx={{ width: "100%", }}>
+            <Box>
+              <Paper elevation={1} sx={{ p: 2 }}>
+                <Typography variant="h6" mb={2}>
+                  Transactions in Last 7 Days
+                </Typography>
+                <LineGraph id={id} refreshTrigger={refreshTrigger} />
+              </Paper>
+            </Box>
+            <Summary id={id} refreshTrigger={refreshTrigger} ></Summary>
+          </Box>
+        </Grid2>)}
+        {isBarGraph && !isTransactionHistory && (<Grid2 container size={12}>
+          <Box sx={{ width: "100%", }}>
+            <Box>
+              <Paper elevation={1} sx={{ p: 2 }}>
+                <Typography variant="h6" mb={2}>
+                  Transactions in Last 7 Days
+                </Typography>
+                <BarGraph id={id} refreshTrigger={refreshTrigger} />
+              </Paper>
+            </Box>
+            <Summary id={id} refreshTrigger={refreshTrigger} ></Summary>
+          </Box>
+        </Grid2>)}
+        {isPieGraph && !isTransactionHistory && (<Grid2 container size={12}>
+          <Box sx={{ width: "100%", }}>
+            <Box>
+              <Paper elevation={1} sx={{ p: 2 }}>
+                <Typography variant="h6" mb={2}>
+                  Transactions in Last 7 Days
+                </Typography>
+                <PieGraph id={id} refreshTrigger={refreshTrigger} />
+              </Paper>
+            </Box>
+            <Summary id={id} refreshTrigger={refreshTrigger} ></Summary>
+          </Box>
+        </Grid2>)}
+
+
+
+
 
       </Grid2 >
+
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>
+          {currentTransaction?.id ? "Edit Transaction" : "Add Transaction"}
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Description"
+            name="description"
+            fullWidth
+            margin="normal"
+            value={currentTransaction?.description || ""}
+            onChange={handleChange} />
+          <TextField
+            label="Amount"
+            name="amount"
+            type="number"
+            fullWidth
+            margin="normal"
+            value={currentTransaction?.amount || ""}
+            onChange={handleChange} />
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Transaction Type</InputLabel>
+            <Select
+              label="Transaction Type"
+              name="transaction_type"
+              value={currentTransaction?.transaction_type || ""}
+              onChange={handleSelectChange}
+            >
+              <MenuItem value={1}>Debit</MenuItem>
+              <MenuItem value={2}>Credit</MenuItem>
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpen(false)} color="secondary">
+            Cancel
+          </Button>
+          <Button
+            onClick={() => currentTransaction?.id ? handleUpdate() : handleAddTransaction()}
+            color="primary"
+          >
+            {currentTransaction?.id ? "Update" : "Add"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };
