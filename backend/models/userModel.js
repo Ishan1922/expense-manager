@@ -31,13 +31,13 @@ const getTransactionsPaginationQuery = async (id, page, limit) => {
       [id, limit, offset]
     );
 
-    res.status(200).json({
+    return {
       transactions: result.rows,
       hasMore: result.rows.length === limit, 
-    });
+    };
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Server Error");
+    console.log("errr ",err);
+    return null;
   }
 };
 
