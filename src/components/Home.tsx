@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
@@ -51,10 +51,16 @@ interface Transaction {
   transaction_type: number;
 }
 
+interface PaginationResponse {
+  transactions: Transaction[],
+  hasMore: boolean, 
+};
+  
+
 const Home = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const apiCalled = useRef(false);
+  // const apiCalled = useRef(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [open, setOpen] = useState(false);
   const [currentTransaction, setCurrentTransaction] = useState<Transaction | null>(null);
@@ -150,8 +156,9 @@ const Home = () => {
       const res = await axios.get(
         `${API_URL}/api/auth/transactions/${id}?page=${page}`
       );
-      setTransactions(res.data.transactions as Transaction[]);
-      setHasMore(res.data.hasMore);
+      const ans = res.data as PaginationResponse;
+      setTransactions(ans.transactions as Transaction[]);
+      setHasMore(ans.hasMore);
     } catch (err) {
       console.error("Error fetching transactions:", err);
     }
