@@ -160,7 +160,7 @@ function Login() {
                   marginBottom: "24px",
                 }}
               >
-                Easily track your expenses and take control of your financial goals.
+                <div>Easily track your expenses and take control</div> of your financial goals.
               </Typography>
             </GlassCard>
           </PageWrapper>
