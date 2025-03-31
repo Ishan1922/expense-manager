@@ -23,6 +23,24 @@ const getTransactionsQuery = async (id) => {
   return result.rows;
 };
 
+const getTransactionsPaginationQuery = async (id, page, limit) => {
+  try {
+    const offset = (page - 1) * limit;
+    const result = await pool.query(
+      "SELECT * FROM transactions WHERE space_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3",
+      [id, limit, offset]
+    );
+
+    res.status(200).json({
+      transactions: result.rows,
+      hasMore: result.rows.length === limit, 
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server Error");
+  }
+};
+
 const getTransactionsOfLast30DaysQuery = async (id) => {
       const result = await pool.query(
         "select * from transactions where space_id = $1 and created_at > now() + '-30 days'",
@@ -69,4 +87,4 @@ const addTransactionQuery = async (
 
 
 
-module.exports = { createUser, getTransactionsQuery, deleteTransactionQuery, updateTransactionQuery, addTransactionQuery, getTransactionsOfLast30DaysQuery, getTransactionsOfLast7DaysQuery, userCheckQuery };
+module.exports = { getTransactionsPaginationQuery,createUser, getTransactionsQuery, deleteTransactionQuery, updateTransactionQuery, addTransactionQuery, getTransactionsOfLast30DaysQuery, getTransactionsOfLast7DaysQuery, userCheckQuery };
