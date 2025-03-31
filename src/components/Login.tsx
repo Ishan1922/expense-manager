@@ -204,7 +204,7 @@ function Login() {
                 textAlign: "center",
                 width: "100%",
                 maxWidth: "600px",
-                margin: { xs: "20px auto", sm: "200px auto" }, // Adjust margins for mobile
+                margin: { xs: "20px auto", sm: "20px auto" }, // Adjust margins for mobile
               }}
             >
               <Typography
