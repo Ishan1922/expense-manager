@@ -21,17 +21,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 const API_URL = "https://expense-manager-27qr.onrender.com";
 
-function Login() {
-  const [username, setUsername] = useState("");
-  const [pswd, setPswd] = useState("");
-  const [confirmPswd, setConfirmPswd] = useState("");
-  const [tabIndex, setTabIndex] = useState(0); // 0 = Login, 1 = Sign In
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-
-  const isMobile = useMediaQuery((theme) => theme.breakpoints.down("sm")); // Check if it's a mobile device
-
-  const PageWrapper = styled(Box)(({ theme }) => ({
+const PageWrapper = styled(Box)(({ theme }) => ({
     backgroundColor: theme.palette.primary.main, // Light primary background
     minHeight: "100vh",
     display: "flex",
@@ -49,6 +39,18 @@ function Login() {
     margin: "auto",
     marginLeft: "50px",
   });
+
+function Login() {
+  const [username, setUsername] = useState("");
+  const [pswd, setPswd] = useState("");
+  const [confirmPswd, setConfirmPswd] = useState("");
+  const [tabIndex, setTabIndex] = useState(0); // 0 = Login, 1 = Sign In
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
+  const isMobile = useMediaQuery((theme) => theme.breakpoints.down("sm")); // Check if it's a mobile device
+
+  
 
   interface UserResponse {
     id: number;
