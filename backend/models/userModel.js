@@ -23,6 +23,18 @@ const getTransactionsQuery = async (id) => {
   return result.rows;
 };
 
+const getFilteredTransactionsQuery = async (id, selectedDate, isDateEnabled, transactionType) => {
+  let tType = 0;
+  if(transactionType == "1")tType = 1;
+  else if (transactionType == "2")tType = 2;
+
+  const result = await pool.query(
+    "SELECT * FROM transactions WHERE ( $2 = false OR DATE(created_at) = $1) AND ($3 = 0 OR transaction_type = $3) order by id desc",
+    [selectedDate, isDateEnabled, tType]
+  );
+  return result.rows;
+};
+
 const getTransactionsOfLast30DaysQuery = async (id) => {
       const result = await pool.query(
         "select * from transactions where space_id = $1 and created_at > now() + '-30 days'",
@@ -69,4 +81,4 @@ const addTransactionQuery = async (
 
 
 
-module.exports = { createUser, getTransactionsQuery, deleteTransactionQuery, updateTransactionQuery, addTransactionQuery, getTransactionsOfLast30DaysQuery, getTransactionsOfLast7DaysQuery, userCheckQuery };
+module.exports = { createUser, getTransactionsQuery, deleteTransactionQuery, updateTransactionQuery, addTransactionQuery, getTransactionsOfLast30DaysQuery, getTransactionsOfLast7DaysQuery, userCheckQuery, getFilteredTransactionsQuery };

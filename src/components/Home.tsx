@@ -14,13 +14,17 @@ import {
   DialogContent,
   DialogTitle,
   FormControl,
+  FormControlLabel,
   Grid2,
   IconButton,
   InputLabel,
   MenuItem,
   Paper,
+  Radio,
+  RadioGroup,
   Select,
   SelectChangeEvent,
+  Switch,
   Tab,
   Table,
   TableBody,
@@ -33,7 +37,7 @@ import {
   Typography,
   useMediaQuery,
 } from "@mui/material";
-import { Add, Delete, Edit } from "@mui/icons-material";
+import { Add, Delete, Edit, TuneOutlined } from "@mui/icons-material";
 import BarGraph from "./BarGraph";
 import PieGraph from "./PieGraph";
 import Navbar from "./Navbar";
@@ -68,6 +72,45 @@ const Home = () => {
   const [isPieGraph, setIsPieGraph] = useState(false);
   // const [isSummary, setIsSummary] = useState(false);
   const [isTransactionHistory, setIsTransactionHistory] = useState(true);
+  const [openDateDailog, setOpenDateDailog] = useState(false); // To control the dialog visibility
+  const today = new Date().toISOString().split("T")[0];
+  const [selectedDate, setSelectedDate] = useState(today); // To store the selected date
+  const [transactionType, setTransactionType] = useState("0");
+  const [isDateEnabled, setIsDateEnabled] = useState(false); // Toggle state
+
+  const handleToggleDate = () => {
+    setIsDateEnabled(!isDateEnabled);
+    if (!isDateEnabled) {
+      setSelectedDate("");
+    }
+  };
+
+
+  const handleTransactionTypeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setTransactionType((event.target as HTMLInputElement).value);
+  };
+
+  const handleClickOpenDateDailog = () => {
+    setOpenDateDailog(true);
+  };
+
+  // Close Dialog
+  const handleCloseDateDailog = () => {
+    setOpenDateDailog(false);
+  };
+
+  const handleDateSubmit = () => {
+    console.log("Date Enabled:", isDateEnabled);
+    console.log("Selected Date:", selectedDate);
+    console.log("Selected Transaction Type:", transactionType);
+    handleCloseDateDailog(); // Close the dialog after submitting
+    fetchTransactions();
+  };
+
+  // Handle Date Change
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedDate(e.target.value);
+  };
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabIndex(newValue);
@@ -144,7 +187,15 @@ const Home = () => {
     setLoading(true);
     try {
       const res = await axios.get(
-        `${API_URL}/api/auth/transactions/${id}`
+        `${API_URL}/api/auth/transactions/${id}`,{
+        // `http://localhost:5000/api/auth/transactions/${id}`,{
+          params :{
+            selectedDate: selectedDate,
+            isDateEnabled: isDateEnabled,
+            transactionType: transactionType
+          }
+          
+        }
       );
       setTransactions(res.data as Transaction[]);
     } catch (err) {
@@ -304,6 +355,7 @@ const Home = () => {
 
               }}
             >
+                <TuneOutlined onClick={handleClickOpenDateDailog} />
               <Typography variant="h6" gutterBottom>
                 Transaction History
               </Typography>
@@ -542,6 +594,49 @@ const Home = () => {
             color="primary"
           >
             {currentTransaction?.id ? "Update" : "Add"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={openDateDailog} onClose={handleCloseDateDailog} fullWidth maxWidth="sm">
+        <DialogTitle> <FormControlLabel
+              control={<Switch checked={isDateEnabled} onChange={handleToggleDate} />}
+              label={null}
+            />Date</DialogTitle>
+        <DialogContent>
+          <Box>
+          
+            <TextField
+              type="date"
+              value={selectedDate}
+              onChange={handleDateChange}
+              fullWidth
+              InputLabelProps={{
+                shrink: true, // Ensures label is above the input field
+              }}
+            />
+            
+          </Box>
+          <FormControl component="fieldset" sx={{ mt: 2 }}>
+      <RadioGroup
+        aria-label="transaction-type"
+        name="transaction-type"
+        value={transactionType}
+        onChange={handleTransactionTypeChange}
+        row
+      >
+        <FormControlLabel value="0" control={<Radio />} label="All" />
+        <FormControlLabel value="1" control={<Radio />} label="Debit" />
+        <FormControlLabel value="2" control={<Radio />} label="Credit" />
+      </RadioGroup>
+    </FormControl>
+        </DialogContent>
+        <DialogActions>
+          {/* <Button onClick={handleCloseDateDailog} color="primary">
+            Cancel
+          </Button> */}
+          <Button onClick={handleDateSubmit} color="primary">
+            Submit
           </Button>
         </DialogActions>
       </Dialog>
