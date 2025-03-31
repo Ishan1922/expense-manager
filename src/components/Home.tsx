@@ -61,6 +61,9 @@ const Home = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(false);
   const [tabIndex, setTabIndex] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const [isLineGraph, setIsLineGraph] = useState(false);
@@ -129,6 +132,7 @@ const Home = () => {
         );
 
         toast.success("Transaction deleted successfully")
+        setPage(1);
         setRefreshTrigger((prev) => !prev);
         console.log("Transaction deleted successfully");
       } catch (err) {
@@ -144,9 +148,10 @@ const Home = () => {
     setLoading(true);
     try {
       const res = await axios.get(
-        `${API_URL}/api/auth/transactions/${id}`
+        `${API_URL}/api/auth/transactions/${id}?page=${page}`
       );
-      setTransactions(res.data as Transaction[]);
+      setTransactions(res.data.transactions as Transaction[]);
+      setHasMore(res.data.hasMore);
     } catch (err) {
       console.error("Error fetching transactions:", err);
     }
@@ -163,11 +168,10 @@ const Home = () => {
     return new Date(dateString).toLocaleDateString("en-US", options);
   };
   useEffect(() => {
-    if (id && !apiCalled.current) {
+    if (id ) {
       fetchTransactions();
-      apiCalled.current = true;
     }
-  });
+  }, [page]);
 
   const formatAmount = (amount: number, transactionType: number) => {
     if (amount == undefined || amount == null) return <span>0</span>;
@@ -209,6 +213,7 @@ const Home = () => {
             )
           );
           toast.success("Transaction edited successfully! 🎉");
+          setPage(1);
           setRefreshTrigger((prev) => !prev);
         }
 
@@ -246,6 +251,7 @@ const Home = () => {
         console.log("Transaction added successfully");
         setOpen(false);
         toast.success("Transaction added successfully!");
+        setPage(1);
         setRefreshTrigger((prev) => !prev);
       }
     } catch (err) {
@@ -392,7 +398,21 @@ const Home = () => {
                   ))}
                 </TableBody>
               </Table>
-            </TableContainer>)}
+            </TableContainer>)
+            }
+
+            {hasMore && (
+  <Box display="flex" justifyContent="center" my={2}>
+    <Button
+      variant="contained"
+      fullWidth
+      onClick={() => setPage((prev) => prev + 1)}
+      disabled={loading}
+    >
+      {loading ? "Loading..." : "Load More"}
+    </Button>
+  </Box>
+)}
 
           </Paper>
 
