@@ -1,4 +1,4 @@
-const { createUser, getTransactionsQuery, deleteTransactionQuery, updateTransactionQuery, addTransactionQuery, getTransactionsOfLast30DaysQuery, getTransactionsOfLast7DaysQuery, userCheckQuery } = require("../models/userModel");
+const { getTransactionsPaginationQuery,createUser, getTransactionsQuery, deleteTransactionQuery, updateTransactionQuery, addTransactionQuery, getTransactionsOfLast30DaysQuery, getTransactionsOfLast7DaysQuery, userCheckQuery } = require("../models/userModel");
 
 const registerUser = async (req, res) => {
   const { username, password } = req.body;
@@ -25,6 +25,19 @@ const getTransactions = async (req, res) => {
       const { id } = req.params;
       try {
         const allTransactions = await getTransactionsQuery(id);
+        res.status(201).json(allTransactions);
+      } catch (err) {
+        console.error(err.message);
+        res.status(500).send("Server Error");
+      }
+    };
+
+const getTransactionsPagination = async (req, res) => {
+      const { id } = req.params;
+      const page = parseInt(req.query.page) || 1; // Default to 1
+      const limit = 10;
+      try {
+        const allTransactions = await getTransactionsPaginationQuery(id,page,limit);
         res.status(201).json(allTransactions);
       } catch (err) {
         console.error(err.message);
@@ -97,4 +110,4 @@ const addTransaction = async (req, res) => {
       }
     };
     
-module.exports = { registerUser, getTransactions, deleteTransaction, updateTransaction, addTransaction, getTransactionsOfLast30Days, getTransactionsOfLast7Days, userCheck };
+module.exports = { getTransactionsPagination,registerUser, getTransactions, deleteTransaction, updateTransaction, addTransaction, getTransactionsOfLast30Days, getTransactionsOfLast7Days, userCheck };
