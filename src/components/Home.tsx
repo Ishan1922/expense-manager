@@ -80,9 +80,6 @@ const Home = () => {
 
   const handleToggleDate = () => {
     setIsDateEnabled(!isDateEnabled);
-    if (!isDateEnabled) {
-      setSelectedDate("");
-    }
   };
 
 
