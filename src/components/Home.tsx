@@ -157,6 +157,7 @@ const Home = () => {
         `${API_URL}/api/auth/transactions/${id}?page=${page}`
       );
       const ans = res.data as PaginationResponse;
+      console.log("pagination response",ans);
       setTransactions(ans.transactions as Transaction[]);
       setHasMore(ans.hasMore);
     } catch (err) {
