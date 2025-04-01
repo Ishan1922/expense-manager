@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // import React from 'react'
 
-import { Box, Chip, CircularProgress, FormControl, FormControlLabel, Grid2, Paper, Radio, RadioGroup, Typography } from "@mui/material"
+import { Box, Chip, CircularProgress, FormControl, FormControlLabel, Grid2, Paper, Radio, RadioGroup, Typography, useMediaQuery } from "@mui/material"
 import { useEffect, useState } from "react";
 import axios from "axios";
+import theme from "../theme";
 
 const API_URL = "https://expense-manager-27qr.onrender.com";
 
@@ -26,6 +27,7 @@ const Summary = (props: { id: string | undefined, refreshTrigger: boolean }) => 
 	const [result, setResult] = useState<Transaction[]>([]);
 
 	const [loading, setLoading] = useState(false);
+	const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
 	useEffect(() => {
 		const fetchTransactions = async () => {
@@ -78,7 +80,7 @@ const Summary = (props: { id: string | undefined, refreshTrigger: boolean }) => 
 				<Paper elevation={1} sx={{ p: 2 }}>
 					<Grid2 container spacing={2}>
 						<Grid2 size={6}>
-							<Typography variant="h6">Top 3 Transactions in Last 30 Days</Typography>
+							<Typography variant="h6">Top 3 Transactions {!isMobile ? <span>in Last 30 Days</span> : null }</Typography>
 						</Grid2>
 						<Grid2 size={6} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
 							<FormControl>

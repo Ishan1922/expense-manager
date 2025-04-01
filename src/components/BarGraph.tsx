@@ -12,7 +12,8 @@ import {
       ResponsiveContainer,
       CartesianGrid
 } from "recharts";
-import { Stack, Box, Typography, CircularProgress } from "@mui/material";
+import { Stack, Box, Typography, CircularProgress, useMediaQuery } from "@mui/material";
+import theme from "../theme";
 
 interface Transaction {
       id: number;
@@ -37,6 +38,7 @@ const BarGraph = (props: { id: string | undefined, refreshTrigger: boolean }) =>
       const [transactions, setTransactions] = useState<Transaction[]>([]);
       const [aggregatedData, setAggregatedData] = useState<AggregatedData[]>([]);
       const [loading, setLoading] = useState(false);
+      const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
 
       useEffect(() => {
@@ -127,7 +129,7 @@ const BarGraph = (props: { id: string | undefined, refreshTrigger: boolean }) =>
                   <ResponsiveContainer width="100%" height={300}>
                         <BarChart
                               data={aggregatedData}
-                              margin={{ top: 20, right: 30, left: 20, bottom: 30 }}
+                              margin={ isMobile ? {top: 0, right: 0, left: 0, bottom: 0} : { top: 20, right: 30, left: 20, bottom: 30 }}
                         >
                              <CartesianGrid
       strokeDasharray="3 3" // Dashed grid lines
@@ -136,15 +138,15 @@ const BarGraph = (props: { id: string | undefined, refreshTrigger: boolean }) =>
     /> 
                               <XAxis
                                     dataKey="day"
-                                    label={{ value: "Day", position: "insideBottom", offset: -20 }}
+                                    label={ !isMobile ? { value: "Day", position: "insideBottom", offset: -20 }: undefined}
                               />
                               <YAxis
-                                    label={{
+                                    label={ !isMobile ? {
                                           value: "Amount",
                                           angle: -90,
                                           position: "insideLeft",
                                           offset: -10,
-                                    }}
+                                    } : undefined}
                               />
                               <Tooltip
                                     cursor={{ fill: "transparent" }} // Remove background highlight on hover
