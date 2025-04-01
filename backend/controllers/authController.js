@@ -1,4 +1,15 @@
-const { createUser, getTransactionsQuery, deleteTransactionQuery, updateTransactionQuery, addTransactionQuery, getTransactionsOfLast30DaysQuery, getTransactionsOfLast7DaysQuery, userCheckQuery, getFilteredTransactionsQuery } = require("../models/userModel");
+const { createUser, getTransactionsQuery, deleteTransactionQuery, updateTransactionQuery, addTransactionQuery, getTransactionsOfLast30DaysQuery, getTransactionsOfLast7DaysQuery, userCheckQuery, getFilteredTransactionsQuery, getCategoriesQuery } = require("../models/userModel");
+
+const getCategories = async (req, res) => {
+  const {type_id} = req.query;
+  try {
+    const result = await getCategoriesQuery(type_id);
+    res.status(201).json(result);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server Error");
+  }
+};
 
 const registerUser = async (req, res) => {
   const { username, password } = req.body;
@@ -80,10 +91,10 @@ const deleteTransaction = async (req, res) => {
 
 const updateTransaction = async (req, res) => {
       const { id } = req.params;
-      const { description, amount, transaction_type } = req.body;
+      const { description, amount, transaction_type, category_id } = req.body;
     
       try {
-        const result = await updateTransactionQuery(id,  description, amount, transaction_type);
+        const result = await updateTransactionQuery(id,  description, amount, transaction_type, category_id);
     
         if (result.rowCount === 0) {
           return res.status(404).json({ message: "Transaction not found" });
@@ -98,9 +109,9 @@ const updateTransaction = async (req, res) => {
 
 
 const addTransaction = async (req, res) => {
-      const { amount, description, transaction_type, space_id } = req.body;
+      const { amount, description, transaction_type, space_id, category_id } = req.body;
       try {
-        const newTransaction = await addTransactionQuery(amount, description, transaction_type, space_id)
+        const newTransaction = await addTransactionQuery(amount, description, transaction_type, space_id, category_id)
         res.status(201).json(newTransaction.rows[0]);
       } catch (err) {
         console.error(err.message);
@@ -108,4 +119,4 @@ const addTransaction = async (req, res) => {
       }
     };
     
-module.exports = { registerUser, getTransactions, deleteTransaction, updateTransaction, addTransaction, getTransactionsOfLast30Days, getTransactionsOfLast7Days, userCheck, getFilteredTransactions };
+module.exports = { getCategories,registerUser, getTransactions, deleteTransaction, updateTransaction, addTransaction, getTransactionsOfLast30Days, getTransactionsOfLast7Days, userCheck, getFilteredTransactions };

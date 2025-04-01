@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { BarChart, Close, Logout, MenuOutlined, PieChart, ReceiptLongOutlined, ShowChart } from "@mui/icons-material";
 import { AppBar, Button, Divider, Drawer, IconButton, List, ListItem, ListItemIcon, ListItemText, Toolbar, Typography, useMediaQuery } from "@mui/material";
 import { useNavigate } from "react-router-dom";

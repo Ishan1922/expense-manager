@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
@@ -44,16 +42,8 @@ import Navbar from "./Navbar";
 import LineGraph from "./LineGraph";
 import Summary from "./Summary";
 import theme from "../theme";
+import { API_URL, Category, Transaction } from "../dto/common";
 
-const API_URL = "https://expense-manager-27qr.onrender.com";
-
-interface Transaction {
-  id: number;
-  amount: number;
-  created_at: string;
-  description: string;
-  transaction_type: number;
-}
 
 const Home = () => {
   const navigate = useNavigate();
@@ -77,6 +67,40 @@ const Home = () => {
   const [selectedDate, setSelectedDate] = useState(today); // To store the selected date
   const [transactionType, setTransactionType] = useState("0");
   const [isDateEnabled, setIsDateEnabled] = useState(false); // Toggle state
+  // const [currCategory,setCurrCategory] = useState(1);
+  const [categoryList, setCategoryList] = useState<Category[]>([])
+
+  const getCategories = async (id: number) => {
+    if(id == null || id == undefined){
+      id=1;
+    }
+    setLoading(true);
+    try{
+      const res = await axios.get(
+        // `${API_URL}/api/auth/getCategories`,{
+        `http://localhost:5000/api/auth/getCategories`,{
+          params: {
+            type_id: id
+          }
+        }
+      );
+      const ans = res.data as Category[];
+      setCategoryList(ans);
+      if(ans.length > 0){
+        if (currentTransaction) {
+          setCurrentTransaction({
+            ...currentTransaction,
+            category_id: ans[0].id,
+          });
+        }
+      }
+    }
+    catch (err) {
+      toast.error("Error fetching categories");
+      console.log("err",err);
+    }
+    setLoading(false);
+  }
 
   const handleToggleDate = () => {
     setIsDateEnabled(!isDateEnabled);
@@ -254,7 +278,8 @@ const Home = () => {
       setLoading(true);
       try {
         const res = await axios.put(
-          `${API_URL}/api/auth/transactions/update/${currentTransaction.id}`,
+          // `${API_URL}/api/auth/transactions/update/${currentTransaction.id}`,
+          `http://localhost:5000/api/auth/transactions/update/${currentTransaction.id}`,
           currentTransaction
         );
         if (res.data) {
@@ -263,12 +288,13 @@ const Home = () => {
               transaction.id === currentTransaction.id ? (res.data as Transaction[])[0] : transaction
             )
           );
+          setOpen(false);
           toast.success("Transaction edited successfully! 🎉");
           setRefreshTrigger((prev) => !prev);
         }
 
-        console.log("transactions --", res.data);
         setOpen(false);
+        console.log("transactions --", res.data);
         console.log("Transaction updated successfully");
       } catch (err) {
         console.error("Error updating transaction:", err);
@@ -285,7 +311,9 @@ const Home = () => {
       description: "",
       created_at: new Date().toISOString(),
       transaction_type: 1, // Default to Debit
+      category_id: 5
     });
+    getCategories(1);
     setOpen(true);
   };
 
@@ -322,7 +350,25 @@ const Home = () => {
     }
   };
 
+  useEffect(() => {
+    if (currentTransaction?.transaction_type) {
+      getCategories(currentTransaction.transaction_type);
+    }
+  }, [currentTransaction?.transaction_type]);
+  
+
   const handleSelectChange = (e: SelectChangeEvent<number>) => {
+    const { name, value } = e.target;
+    if (currentTransaction) {
+      setCurrentTransaction({
+        ...currentTransaction,
+        [name]: Number(value), // Convert value to number
+      });
+
+    }
+  };
+
+  const handleCategoryChange = (e: SelectChangeEvent<number>) => {
     const { name, value } = e.target;
     if (currentTransaction) {
       setCurrentTransaction({
@@ -556,6 +602,7 @@ const Home = () => {
 
       </Grid2 >
 
+{/* Add/Edit transaction dailog box */}
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>
           {currentTransaction?.id ? "Edit Transaction" : "Add Transaction"}
@@ -588,6 +635,19 @@ const Home = () => {
               <MenuItem value={2}>Credit</MenuItem>
             </Select>
           </FormControl>
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Category</InputLabel>
+            <Select
+              label="Category"
+              name="category_id"
+              value={currentTransaction?.category_id || ""}
+              onChange={handleCategoryChange}
+            >
+              {categoryList.map((item) => (
+                <MenuItem key={item.id} value={item.id}>{item.name}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpen(false)} color="secondary">
@@ -602,6 +662,7 @@ const Home = () => {
         </DialogActions>
       </Dialog>
 
+{/* Filter data dailog box */}
       <Dialog open={openDateDailog} onClose={handleCloseDateDailog} fullWidth maxWidth="sm">
         <DialogTitle> <FormControlLabel
               control={<Switch checked={isDateEnabled} onChange={handleToggleDate} />}

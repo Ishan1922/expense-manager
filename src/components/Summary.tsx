@@ -1,20 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-// import React from 'react'
-
 import { Box, Chip, CircularProgress, FormControl, FormControlLabel, Grid2, Paper, Radio, RadioGroup, Typography, useMediaQuery } from "@mui/material"
 import { useEffect, useState } from "react";
 import axios from "axios";
 import theme from "../theme";
+import { Transaction, API_URL } from "../dto/common";
 
-const API_URL = "https://expense-manager-27qr.onrender.com";
-
-interface Transaction {
-	id: number;
-	amount: number;
-	created_at: string;
-	description: string;
-	transaction_type: number;
-}
 
 const Summary = (props: { id: string | undefined, refreshTrigger: boolean }) => {
 	const [selectedValue, setSelectedValue] = useState<string>("1");

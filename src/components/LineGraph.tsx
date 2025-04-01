@@ -12,22 +12,13 @@ import {
   CartesianGrid,
 } from "recharts";
 import { Stack, Box, Typography, CircularProgress } from "@mui/material";
-
-interface Transaction {
-  id: number;
-  amount: number;
-  created_at: string;
-  description: string;
-  transaction_type: number;
-}
+import { Transaction, API_URL } from "../dto/common";
 
 interface AggregatedData {
   day: string;
   debit: number;
   credit: number;
 }
-
-const API_URL = "https://expense-manager-27qr.onrender.com";
 
 const LineGraph = (props: { id: string | undefined; refreshTrigger: boolean }) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);

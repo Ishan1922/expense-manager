@@ -14,14 +14,8 @@ import {
 } from "recharts";
 import { Stack, Box, Typography, CircularProgress, useMediaQuery } from "@mui/material";
 import theme from "../theme";
+import { Transaction, API_URL } from "../dto/common";
 
-interface Transaction {
-      id: number;
-      amount: number;
-      created_at: string;
-      description: string;
-      transaction_type: number;
-}
 
 interface AggregatedData {
       day: string;
@@ -29,7 +23,6 @@ interface AggregatedData {
       credit: number;
 }
 
-const API_URL = "https://expense-manager-27qr.onrender.com";
 
 const BarGraph = (props: { id: string | undefined, refreshTrigger: boolean }) => {
 

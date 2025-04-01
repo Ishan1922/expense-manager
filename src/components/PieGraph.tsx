@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useEffect, useState } from "react";
 import axios from "axios";
 import {
@@ -10,16 +9,7 @@ import {
       Legend,
 } from "recharts";
 import { Box, CircularProgress } from "@mui/material";
-
-interface Transaction {
-      id: number;
-      amount: number;
-      created_at: string;
-      description: string;
-      transaction_type: number;
-}
-
-const API_URL = "https://expense-manager-27qr.onrender.com";
+import { Transaction, API_URL } from "../dto/common";
 
 const COLORS = ["#e57373", "#81c784"]; // Red for Debit, Green for Credit
 

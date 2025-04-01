@@ -18,8 +18,8 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { API_URL } from "../dto/common";
 
-const API_URL = "https://expense-manager-27qr.onrender.com";
 
 const PageWrapper = styled(Box)(({ theme }) => ({
     backgroundColor: theme.palette.primary.main, // Light primary background
