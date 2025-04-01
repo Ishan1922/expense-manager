@@ -313,7 +313,6 @@ const Home = () => {
       transaction_type: 1, // Default to Debit
       category_id: 5
     });
-    getCategories(1);
     setOpen(true);
   };
 
