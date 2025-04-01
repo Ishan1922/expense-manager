@@ -201,15 +201,22 @@ const Home = () => {
     setLoading(false);
   };
   const formatDate = (dateString: string) => {
-    const options: Intl.DateTimeFormatOptions = {
-      year: "numeric",
-      month: "short",
-      day: "2-digit",
+    const date = new Date(dateString);
+  
+    const timePart = date.toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
-    };
-    return new Date(dateString).toLocaleDateString("en-US", options);
+      hour12: false, // for 24-hour format like 23:51
+    });
+  
+    const datePart = date.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+    });
+  
+    return `${datePart}, ${timePart}`;
   };
+  
   useEffect(() => {
     if (id && !apiCalled.current) {
       fetchTransactions();
