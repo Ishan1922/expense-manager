@@ -16,3 +16,7 @@ createRoot(document.getElementById("root")!).render(
     </BrowserRouter>
   </StrictMode>
 );
+
+
+
+    // "both": "concurrently \"npm run dev\" \"npm start --prefix backend\"",

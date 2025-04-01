@@ -11,6 +11,7 @@ import {
   styled,
   Backdrop,
   CircularProgress,
+  useMediaQuery,
 } from "@mui/material";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -18,6 +19,26 @@ import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+const API_URL = "https://expense-manager-27qr.onrender.com";
+
+const PageWrapper = styled(Box)(({ theme }) => ({
+    backgroundColor: theme.palette.primary.main, // Light primary background
+    minHeight: "100vh",
+    display: "flex",
+    alignItems: "center",
+    padding: "20px",
+  }));
+
+  const GlassCard = styled(Box)({
+    backdropFilter: "blur(12px)", // Blur for glass effect
+    WebkitBackdropFilter: "blur(12px)", // Safari support
+    borderRadius: "20px",
+    padding: "40px",
+    width: "100%",
+    textAlign: "left",
+    margin: "auto",
+    marginLeft: "50px",
+  });
 
 function Login() {
   const [username, setUsername] = useState("");
@@ -26,32 +47,10 @@ function Login() {
   const [tabIndex, setTabIndex] = useState(0); // 0 = Login, 1 = Sign In
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  
 
-  const PageWrapper = styled(Box)(({ theme }) => ({
-    backgroundColor: theme.palette.primary.main, // Light primary background
-    minHeight: "100vh",
-    display: "flex",
-    // justifyContent: "center",
-    alignItems: "center",
-    padding: "20px",
-  }));
-  
-  const GlassCard = styled(Box)({
-    // background: "rgba(255, 255, 255, 0.2)", // Transparent white
-    backdropFilter: "blur(12px)", // Blur for glass effect
-    WebkitBackdropFilter: "blur(12px)", // Safari support
-    borderRadius: "20px",
-    padding: "40px",
-    // boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)", // Softer shadow
-    // border: "1px solid rgba(255, 255, 255, 0.3)", // Subtle border
-    // maxWidth: "10000px",
-    width: "100%",
-    textAlign: "left",
-    margin: "auto",
-    marginLeft: "50px"
-  });
+  const isMobile = useMediaQuery((theme) => theme.breakpoints.down("sm")); // Check if it's a mobile device
 
+  
 
   interface UserResponse {
     id: number;
@@ -64,67 +63,56 @@ function Login() {
     // Sign In Logic
     if (tabIndex === 1) {
       if (pswd !== confirmPswd) {
-        toast.error("Passwords do not match!"); // Simple alert for error
+        toast.error("Passwords do not match!");
         return;
       }
-      setLoading(true)
+      setLoading(true);
       try {
-        //check if user already exist!!
-        const checkRes = await axios.post(
-          "http://localhost:5000/api/auth/userCheck",
-          {
-            username,
-            password: pswd,
-          }
-        );
+        // Check if user already exists
+        const checkRes = await axios.post(`${API_URL}/api/auth/userCheck`, {
+          username,
+          password: pswd,
+        });
         const userObj = checkRes.data as UserResponse[];
 
         if (checkRes.data && userObj.length > 0 && userObj[0].id) {
-          toast.error("User already exist.")
-          setLoading(false)
+          toast.error("User already exists.");
+          setLoading(false);
         } else {
-          setLoading(true)
-
+          setLoading(true);
           try {
             // Register new user
-            const res = await axios.post("http://localhost:5000/api/auth/register", {
+            const res = await axios.post(API_URL + "/api/auth/register", {
               username,
               password: pswd,
             });
-            console.log("User created:", res.data);
             const obj = res.data as UserResponse;
             localStorage.setItem("user", JSON.stringify(obj));
             navigate("/home/" + obj.id);
           } catch (err) {
-            console.error("Error registering user:", err);
-            toast.error("Something went wrong")
+            console.log("err ", err);
+            toast.error("Something went wrong");
           }
-
-          setLoading(false)
+          setLoading(false);
         }
       } catch (err) {
         console.error("Error signing in:", err);
       }
-      setLoading(false)
-
-
+      setLoading(false);
     }
     // Login Logic
     else {
-      setLoading(true)
+      setLoading(true);
       try {
-        const checkRes = await axios.post(
-          "http://localhost:5000/api/auth/userCheck",
-          {
-            username,
-            password: pswd,
-          }
-        );
+        const checkRes = await axios.post(API_URL + "/api/auth/userCheck", {
+          username,
+          password: pswd,
+        });
         const userObj = checkRes.data as UserResponse[];
 
         if (checkRes.data && userObj.length > 0 && userObj[0].id) {
-          console.log("User exists, logging in:", userObj[0]);
           localStorage.setItem("user", JSON.stringify(userObj[0]));
+          console.log("getting in home page");
           navigate("/home/" + userObj[0].id);
         } else {
           toast.error("Invalid username or password!");
@@ -133,7 +121,7 @@ function Login() {
         console.error("Error logging in:", err);
       }
 
-      setLoading(false)
+      setLoading(false);
     }
   };
 
@@ -142,166 +130,151 @@ function Login() {
   };
 
   return (
-    <Grid2 container sx={{backgroundColor: "primary.main",}}>
-        <Grid2 size={6}>
-        <PageWrapper>
-          <GlassCard>
-            <Typography
-              variant="h4"
-              // fontWeight="bold"
-              color="#fff"
-              gutterBottom
-              sx={{
-                fontFamily: "'Poppins', sans-serif",
-                letterSpacing: "1px",
-                marginBottom: "50px",
-                fontSize: "30px"
-              }}
-            >
-              Welcome To <h3 style={{marginTop: "0px", fontWeight: "bold", fontSize: "50px"}}>Expense Manager 💸</h3>
-            </Typography>
-            <Typography
-              variant="h6"
-              color="#fff"
-              paragraph
-              sx={{
-                fontFamily: "'Poppins', sans-serif",
-                // letterSpacing: "1px",
-                marginBottom: "24px",
-              }}
-            >
-              <div>Easily track your expenses and take control</div>
-              of your financial goals.
-            </Typography>
-
-            {/* <Button
-              variant="contained"
-              // startIcon={<PlayCircleOutlineIcon />}
-              onClick={handleClick}
-              sx={{
-                backgroundColor: "#fff",
-                color: "secondary.contrastText",
-                fontWeight: "bold",
-                padding: "12px 24px",
-                borderRadius: "50px",
-                "&:hover": {
-                  // backgroundColor: "#81c784",
-                  transform: "scale(1.08)", // Subtle zoom-in effect
-                  boxShadow: "0 6px 12px rgba(0, 0, 0, 0.2)",
-                },
-              }}
-            >
-              Get Started
-            </Button> */}
-          </GlassCard>
-
-</PageWrapper>
+    <Grid2 container sx={{ backgroundColor: "primary.main" }}>
+      {/* Left Grid (PageWrapper - Hidden on mobile screens) */}
+      {!isMobile && (
+        <Grid2 size={isMobile ? 0 : 6}>
+          <PageWrapper>
+            <GlassCard>
+              <Typography
+                variant="h4"
+                color="#fff"
+                gutterBottom
+                sx={{
+                  fontFamily: "'Poppins', sans-serif",
+                  letterSpacing: "1px",
+                  marginBottom: "50px",
+                  fontSize: "30px",
+                }}
+              >
+                Welcome To{" "}
+                <div style={{ marginTop: "0px", fontWeight: "bold", fontSize: "50px" }}>
+                  Expense Manager 💸
+                </div>
+              </Typography>
+              <Typography
+                variant="h6"
+                color="#fff"
+                sx={{
+                  fontFamily: "'Poppins', sans-serif",
+                  marginBottom: "24px",
+                }}
+              >
+                <div>Easily track your expenses and take control</div> of your financial goals.
+              </Typography>
+            </GlassCard>
+          </PageWrapper>
         </Grid2>
-        <Grid2 size={6}>
-        <>
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        closeOnClick
-        pauseOnHover
-        draggable
-        theme="colored"
-      />
-      {loading && (
-            <Backdrop
-            sx={() => ({ color: '#fff', zIndex: 2 })}
-            open={loading}
-            onClick={() => setLoading(false)}
-          >
-            <CircularProgress color="inherit" />
-          </Backdrop>
+      )}
+
+      {/* Right Grid (Login form - Always visible, but styled differently for mobile) */}
+      <Grid2 size={isMobile ? 12 : 6}>
+        <PageWrapper>
+          <ToastContainer
+            position="top-right"
+            autoClose={3000}
+            hideProgressBar={false}
+            closeOnClick
+            pauseOnHover
+            draggable
+            theme="colored"
+          />
+          {loading && (
+            <Backdrop sx={() => ({ color: "#fff", zIndex: 2 })} open={loading}>
+              <CircularProgress color="inherit" />
+            </Backdrop>
           )}
 
-      <Container maxWidth="sm" sx={{pointerEvents: loading ? "none" : "auto", 
-            opacity: loading ? 0.8 : 1,
-            transition: "opacity 0.3s ease",}}>
-        <Box mt={20}
-          sx={{
-            border: "1px solid #ccc", // Light gray border
-            borderRadius: "8px", // Rounded corners
-            padding: "20px", // Padding inside the box
-            boxShadow: "0 2px 8px rgba(0,0,0,0.1)", // Optional subtle shadow
-            backgroundColor: "#fff", // White background
-            textAlign: "center", // Center everything
-            width: "100%",
-            maxWidth: "600px",
-            margin: "200px auto", // Center horizontally
-          }}>
-          <Typography variant="subtitle1"
-            gutterBottom
+          <Container
+            maxWidth="sm"
             sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "6px", // Space between text and emoji
-              fontSize: "14px", // Smaller font size
-              fontWeight: 500,
-              color: "#555", // Slightly muted color
-            }}>
-            Let's get you in! 🚀
-          </Typography>
-          <Tabs value={tabIndex} onChange={handleTabChange} centered variant="fullWidth">
-            <Tab label="Log In" />
-            <Tab label="Sign In" />
-          </Tabs>
-
-          <Box mt={1}>
-            <form onSubmit={handleSubmit}>
-              <TextField
-                label="Username"
-                variant="outlined"
-                fullWidth
-                required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                margin="normal"
-              />
-              <TextField
-                label="Password"
-                type="password"
-                variant="outlined"
-                fullWidth
-                required
-                value={pswd}
-                onChange={(e) => setPswd(e.target.value)}
-                margin="normal"
-              />
-              {tabIndex === 1 && (
-                <TextField
-                  label="Confirm Password"
-                  type="password"
-                  variant="outlined"
-                  fullWidth
-                  required
-                  value={confirmPswd}
-                  onChange={(e) => setConfirmPswd(e.target.value)}
-                  margin="normal"
-                />
-              )}
-              <Button
-                type="submit"
-                variant="contained"
-                fullWidth
-                style={{ marginTop: "10px", backgroundColor: "secondary.main" }}
+              pointerEvents: loading ? "none" : "auto",
+              opacity: loading ? 0.8 : 1,
+              transition: "opacity 0.3s ease",
+              paddingTop: { xs: "20px", sm: "50px" }, // Adjust top padding for mobile
+            }}
+          >
+            <Box
+              sx={{
+                border: "1px solid #ccc",
+                borderRadius: "8px",
+                padding: "20px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                backgroundColor: "#fff",
+                textAlign: "center",
+                width: "100%",
+                maxWidth: "600px",
+                margin: { xs: "20px auto", sm: "20px auto" }, // Adjust margins for mobile
+              }}
+            >
+              <Typography
+                variant="subtitle1"
+                gutterBottom
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px",
+                  fontSize: "14px",
+                  fontWeight: 500,
+                  color: "#555",
+                }}
               >
-                {tabIndex === 0 ? "Log In" : "Sign In"}
-              </Button>
-            </form>
-          </Box>
-        </Box>
-      </Container>
+                Let's get you in! 🚀
+              </Typography>
+              <Tabs value={tabIndex} onChange={handleTabChange} centered variant="fullWidth">
+                <Tab label="Log In" />
+                <Tab label="Sign In" />
+              </Tabs>
 
-    </>
-        </Grid2>
-
+              <Box mt={1}>
+                <form onSubmit={handleSubmit}>
+                  <TextField
+                    label="Username"
+                    variant="outlined"
+                    fullWidth
+                    required
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    margin="normal"
+                  />
+                  <TextField
+                    label="Password"
+                    type="password"
+                    variant="outlined"
+                    fullWidth
+                    required
+                    value={pswd}
+                    onChange={(e) => setPswd(e.target.value)}
+                    margin="normal"
+                  />
+                  {tabIndex === 1 && (
+                    <TextField
+                      label="Confirm Password"
+                      type="password"
+                      variant="outlined"
+                      fullWidth
+                      required
+                      value={confirmPswd}
+                      onChange={(e) => setConfirmPswd(e.target.value)}
+                      margin="normal"
+                    />
+                  )}
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    fullWidth
+                    style={{ marginTop: "10px", backgroundColor: "secondary.main" }}
+                  >
+                    {tabIndex === 0 ? "Log In" : "Sign In"}
+                  </Button>
+                </form>
+              </Box>
+            </Box>
+          </Container>
+        </PageWrapper>
       </Grid2>
-    
+    </Grid2>
   );
 }
 
